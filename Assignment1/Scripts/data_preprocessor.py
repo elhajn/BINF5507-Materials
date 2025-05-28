@@ -15,7 +15,20 @@ def impute_missing_values(data, strategy='mean'):
     :return: pandas DataFrame
     """
     # TODO: Fill missing values based on the specified strategy
-    pass
+    data = data.copy()
+    if strategy == 'mean':
+        for col in data.select_dtypes(include = [np.number]).columns:
+            data.fillna({col: data[col].mean()}, inplace=True)
+    elif strategy == 'median':
+        for col in data.select_dtypes(include = [np.number]).columns:
+            data.fillna({col: data[col].median()}, inplace=True)
+    elif strategy == 'mode':
+        for col in data.select_dtypes(include = [np.number]).columns:
+            data.fillna({col: data[col].mode()}, inplace=True)
+        for col in data.select_dtypes(include = [np.object_]).columns:
+            data.fillna({col: data[col].mode()[0]}, inplace=True)
+    return data
+    # pass
 
 # 2. Remove Duplicates
 def remove_duplicates(data):
@@ -25,7 +38,10 @@ def remove_duplicates(data):
     :return: pandas DataFrame
     """
     # TODO: Remove duplicate rows
-    pass
+    data = data.copy()
+    no_dups = data.drop_duplicates()
+    return no_dups
+    # pass
 
 # 3. Normalize Numerical Data
 def normalize_data(data,method='minmax'):
