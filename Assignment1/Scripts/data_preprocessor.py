@@ -18,13 +18,22 @@ def impute_missing_values(data, strategy='mean'):
     data = data.copy()
     if strategy == 'mean':
         for col in data.select_dtypes(include = [np.number]).columns:
-            data.fillna({col: data[col].mean()}, inplace=True)
+            if col == 'target':
+                continue
+            else: 
+                data.fillna({col: data[col].mean()}, inplace=True)
     elif strategy == 'median':
         for col in data.select_dtypes(include = [np.number]).columns:
-            data.fillna({col: data[col].median()}, inplace=True)
+            if col == 'target':
+                continue
+            else: 
+                data.fillna({col: data[col].median()}, inplace=True)
     elif strategy == 'mode':
         for col in data.select_dtypes(include = [np.number]).columns:
-            data.fillna({col: data[col].mode()}, inplace=True)
+            if col == 'target':
+                continue
+            else: 
+                data.fillna({col: data[col].mode()}, inplace=True)
         for col in data.select_dtypes(include = [np.object_]).columns:
             data.fillna({col: data[col].mode()[0]}, inplace=True)
     return data
@@ -50,7 +59,21 @@ def normalize_data(data,method='minmax'):
     :param method: str, normalization method ('minmax' (default) or 'standard')
     """
     # TODO: Normalize numerical data using Min-Max or Standard scaling
-    pass
+    data = data.copy()
+    if method == 'minmax':
+        scaler = MinMaxScaler()
+        scaled = scaler.fit_transform(data.select_dtypes(include = [np.number]))
+        scaled_df = pd.DataFrame(scaled, columns=data.select_dtypes(include = [np.number]).columns)
+        for col in data.select_dtypes(include = [np.number]):
+            data[col] = scaled_df[col]
+    elif method == 'standard':
+        scaler = StandardScaler()
+        scaled = scaler.fit_transform(data.select_dtypes(include = [np.number]))
+        scaled_df = pd.DataFrame(scaled, columns=data.select_dtypes(include = [np.number]).columns)
+        for col in data.select_dtypes(include = [np.number]):
+            data[col] = scaled_df[col]
+    return data
+    # pass
 
 # 4. Remove Redundant Features   
 def remove_redundant_features(data, threshold=0.9):
@@ -60,7 +83,13 @@ def remove_redundant_features(data, threshold=0.9):
     :return: pandas DataFrame
     """
     # TODO: Remove redundant features based on the correlation threshold (HINT: you can use the corr() method)
-    pass
+    data = data.copy()
+    corr_matrix = data.select_dtypes(include = [np.number]).corr().abs()
+    upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k = 1).astype(bool))
+    cols_to_drop = [col for col in upper_tri.columns if any(upper_tri[col] > threshold)]
+    data.drop(columns = cols_to_drop, axis = 1, inplace = True)
+    return data
+    # pass
 
 # ---------------------------------------------------
 
