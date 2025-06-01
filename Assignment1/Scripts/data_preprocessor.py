@@ -16,28 +16,40 @@ def impute_missing_values(data, strategy='mean'):
     """
     # TODO: Fill missing values based on the specified strategy
     data = data.copy()
+    
+    # use if/elif to separate steps for each 'strategy' option
     if strategy == 'mean':
+        
+        # use for loop to iterate through each numerical column
         for col in data.select_dtypes(include = [np.number]).columns:
+            # use if/else to skip 'target' column; don't want to impute this
             if col == 'target':
                 continue
+            # impute numerical columns using the mean value of the respective column
             else: 
                 data.fillna({col: data[col].mean()}, inplace=True)
+                
     elif strategy == 'median':
+        # same set-up as 'mean,' but using the median of each numerical column
         for col in data.select_dtypes(include = [np.number]).columns:
             if col == 'target':
                 continue
             else: 
                 data.fillna({col: data[col].median()}, inplace=True)
+                
     elif strategy == 'mode':
+        # iterate through numerical columns, skipping target, and using the mode to impute
         for col in data.select_dtypes(include = [np.number]).columns:
             if col == 'target':
                 continue
             else: 
                 data.fillna({col: data[col].mode()}, inplace=True)
+        # iterate through categorical columns, using mode to impute
         for col in data.select_dtypes(include = [np.object_]).columns:
             data.fillna({col: data[col].mode()[0]}, inplace=True)
+    
+    # because all of the operations above were done directly to data, simply return the updated data
     return data
-    # pass
 
 # 2. Remove Duplicates
 def remove_duplicates(data):
@@ -48,9 +60,9 @@ def remove_duplicates(data):
     """
     # TODO: Remove duplicate rows
     data = data.copy()
+    # apply the drop_duplicates function to the data and return the updated df no_dups
     no_dups = data.drop_duplicates()
     return no_dups
-    # pass
 
 # 3. Normalize Numerical Data
 def normalize_data(data,method='minmax'):
@@ -60,12 +72,24 @@ def normalize_data(data,method='minmax'):
     """
     # TODO: Normalize numerical data using Min-Max or Standard scaling
     data = data.copy()
+    
+    # use if/elif to separate steps for each 'method' option
     if method == 'minmax':
+        
+        # define scaling method
         scaler = MinMaxScaler()
+        
+        # apply scaling to data; returns an array
         scaled = scaler.fit_transform(data.select_dtypes(include = [np.number]))
+        
+        # convert scaled columns to df, reassign column names from original data
         scaled_df = pd.DataFrame(scaled, columns=data.select_dtypes(include = [np.number]).columns)
+        
+        # replace numerical columns in original df with corresponding columns in scaled df
         for col in data.select_dtypes(include = [np.number]):
             data[col] = scaled_df[col]
+    
+    # does the same as above but with Standard scaling (instead of Min-Max)
     elif method == 'standard':
         scaler = StandardScaler()
         scaled = scaler.fit_transform(data.select_dtypes(include = [np.number]))
@@ -84,12 +108,19 @@ def remove_redundant_features(data, threshold=0.9):
     """
     # TODO: Remove redundant features based on the correlation threshold (HINT: you can use the corr() method)
     data = data.copy()
+    
+    # create a correlation matrix: apply corr function to numerical columns from data and create matrix with the absolute values
     corr_matrix = data.select_dtypes(include = [np.number]).corr().abs()
+    
+    # isolate the upper half of the matrix; ensures the middle diagonal & repeats are ignored
     upper_tri = corr_matrix.where(np.triu(np.ones(corr_matrix.shape), k = 1).astype(bool))
+    
+    # create a list of column names that have a correlation greater than the threshold; these will be dropped
     cols_to_drop = [col for col in upper_tri.columns if any(upper_tri[col] > threshold)]
+    
+    # drop columns with a correlation greater than threshold
     data.drop(columns = cols_to_drop, axis = 1, inplace = True)
     return data
-    # pass
 
 # ---------------------------------------------------
 
